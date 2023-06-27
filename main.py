@@ -4,14 +4,13 @@ app = FastAPI()
 
 import pandas as pd
 import calendar
-import locale
+
 import numpy as np
 import ast
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
-# Establecer el idioma a español
-locale.setlocale(locale.LC_TIME, 'es_ES')
+
 #importamos el csv
 df_movies = pd.read_csv('ETL\movies_ETL.csv')
 df_cast = pd.read_csv('ETL\credits_Cast_ETL.csv')
@@ -47,6 +46,9 @@ def cantidad_filmaciones_mes(mes: str):
 
 @app.get('/cantidad_filmaciones_dia/{dia}')
 def cantidad_filmaciones_dia(dia: str):
+    # Establecer el idioma a español
+    import locale
+    locale.setlocale(locale.LC_TIME, 'es_ES')
     # Convertir la columna 'release_date' al tipo de dato de fecha
     df_movies['release_date'] = pd.to_datetime(df_movies['release_date'])
 
