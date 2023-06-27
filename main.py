@@ -46,9 +46,7 @@ def cantidad_filmaciones_mes(mes: str):
 
 @app.get('/cantidad_filmaciones_dia/{dia}')
 def cantidad_filmaciones_dia(dia: str):
-    # Establecer el idioma a español
-    import locale
-    locale.setlocale(locale.LC_TIME, 'es_ES')
+
     # Convertir la columna 'release_date' al tipo de dato de fecha
     df_movies['release_date'] = pd.to_datetime(df_movies['release_date'])
 
