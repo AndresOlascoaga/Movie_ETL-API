@@ -12,10 +12,10 @@ from sklearn.metrics.pairwise import cosine_similarity
 
 
 #importamos el csv
-df_movies = pd.read_csv('ETL\movies_ETL.csv')
-df_cast = pd.read_csv('ETL\credits_Cast_ETL.csv')
-df_crew = pd.read_csv('ETL\credits_crew_ETL.csv')
-df_movies_cluster = pd.read_csv('ETL\df_movies_cluster.csv')
+df_movies = pd.read_csv('ETL/movies_ETL.csv')
+df_cast = pd.read_csv('ETL/credits_Cast_ETL.csv')
+df_crew = pd.read_csv('ETL/credits_crew_ETL.csv')
+df_movies_cluster = pd.read_csv('ETL/df_movies_cluster.csv')
 
 
 @app.get('/')
