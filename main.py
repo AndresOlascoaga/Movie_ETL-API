@@ -26,6 +26,8 @@ def saludo():
 
 @app.get("/cantidad_filmaciones_mes/{mes}")
 def cantidad_filmaciones_mes(mes: str):
+
+    df_movies = pd.read_csv('ETL/movies_ETL.csv')
     
     # Convertir la columna 'release_date' al tipo de dato de fecha
     df_movies['release_date'] = pd.to_datetime(df_movies['release_date'])
@@ -33,40 +35,60 @@ def cantidad_filmaciones_mes(mes: str):
     # Obtener el nombre del mes de la columna 'release_date'
     df_movies['nombre_mes'] = df_movies['release_date'].dt.strftime('%B')
 
-    # Convertir el mes consultado a minúsculas y que sea tolerante a espacos
-    mes = mes.strip().lower()
 
+    #creamos diccionarios con los nombres de los meses en ingles y español para poder cambiar el nombre de
+    meses_ingles = ['January', 'February', 'March', 'April', 'May', 'June',
+                    'July', 'August', 'September', 'October', 'November', 'December']
+
+    meses_espanol = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
+                    'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre']
+
+    # Crear un diccionario de nombres de meses en inglés y en español
+    meses_dict = dict(zip(meses_ingles, meses_espanol))
+    
+
+    #cambiamos el nombre de ingles a español
+    df_movies['nombre_mes'] = df_movies['nombre_mes'].map(meses_dict)
+        
     # Filtrar las películas estrenadas en el mes consultado
-    peliculas_mes = (df_movies['nombre_mes'] == mes).sum()
-
+    peliculas_mes = (df_movies['nombre_mes'].str.strip().str.lower() == mes.strip().lower()).sum()
+    
     # Devolver el resultado
     return {"mes":mes, "cantidad": f"{peliculas_mes} películas fueron estrenadas en el mes de {mes}"}
 
 
-
 @app.get('/cantidad_filmaciones_dia/{dia}')
-def cantidad_filmaciones_dia(dia: str):
+def cantidad_filmaciones_dia(dia):
+    df_movies = pd.read_csv('ETL/movies_ETL.csv')
 
     # Convertir la columna 'release_date' al tipo de dato de fecha
     df_movies['release_date'] = pd.to_datetime(df_movies['release_date'])
 
-    # Obtener el nombre del día de la semana de la columna 'release_date'
+    # Obtener el nombre del día de la semana de la columna 'release_date' en español
     df_movies['nombre_dia'] = df_movies['release_date'].dt.strftime('%A')
 
-    # Convertir el día consultado a minúsculas y que sea tolerante a espacios
-    dia = dia.strip().lower()
+    # Crear un diccionario de nombres de días de la semana en inglés y en español
+    dias_ingles = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+    dias_espanol = ['lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado', 'domingo']
+
+    # Crear un diccionario de nombres de dias en inglés y en español
+    dias_dict = dict(zip(dias_ingles, dias_espanol))
+
+    # Cambiamos el nombre de inglés a español
+    df_movies['nombre_dia'] = df_movies['nombre_dia'].map(dias_dict)
 
     # Filtrar las películas estrenadas en el día consultado
-    peliculas_dia = (df_movies['nombre_dia'] == dia).sum()
+    peliculas_dia = (df_movies['nombre_dia'].str.strip().str.lower() == dia.strip().lower()).sum()
 
     # Devolver el resultado
     return {'dia': dia, 'cantidad': f"{peliculas_dia} películas fueron estrenadas el día {dia}"}
 
 
+
 @app.get('/score_titulo/{titulo_de_la_filmacion}')
 def score_titulo(titulo_de_la_filmacion: str):
-    import pandas as pd
- 
+    
+    df_movies = pd.read_csv('ETL/movies_ETL.csv')
     # Usamos loc para ubicar la popularidad por el título, dado que puede haber varias películas con el mismo título
     # Se hace tolerante a espacios y se convierte a minúsculas para realizar una comparación insensible a mayúsculas y espacios
     peliculas = df_movies.loc[df_movies['title'].str.strip().str.lower() == titulo_de_la_filmacion.strip().lower()]
@@ -87,6 +109,8 @@ def score_titulo(titulo_de_la_filmacion: str):
 
 @app.get('/votos_titulo/{titulo_de_la_filmacion}')
 def votos_titulo(titulo_de_la_filmacion: str):
+
+    df_movies = pd.read_csv('ETL/movies_ETL.csv')
     # Filtrar el DataFrame por el título dado 
     # hacemos que sea tolerante a espacios al inicio o al final del nombre, a datos que no sean de tipo str y a las mayusculas
     filtro = df_movies.loc[df_movies['title'].str.strip().str.strip().str.lower() == titulo_de_la_filmacion.strip().lower()]
@@ -113,6 +137,9 @@ def votos_titulo(titulo_de_la_filmacion: str):
 
 @app.get('/get_actor/{nombre_actor}')
 def get_actor(nombre_actor):
+
+    df_cast = pd.read_csv('ETL/credits_Cast_ETL.csv')
+    df_movies = pd.read_csv('ETL/movies_ETL.csv')
     # Filtrar el DataFrame df_cast por nombre del actor
     peliculas_actor= df_cast[df_cast['name'].str.strip().str.strip().str.lower() == nombre_actor.strip().lower()]
 
@@ -142,6 +169,9 @@ def get_actor(nombre_actor):
 
 @app.get('/get_director/{nombre_director}')
 def get_director( nombre_director ):
+
+    df_movies = pd.read_csv('ETL/movies_ETL.csv')
+    df_crew = pd.read_csv('ETL/credits_crew_ETL.csv')
     # Filtrar el DataFrame df_cast por nombre del actor
     peliculas_director= df_crew[df_crew['name'].str.strip().str.strip().str.lower() == nombre_director.strip().lower()]
 
@@ -203,6 +233,8 @@ def get_director( nombre_director ):
 # ML
 @app.get('/recomendacion/{titulo}')
 def recomendacion( titulo : str):
+  
+  df_movies_cluster = pd.read_csv('ETL/df_movies_cluster.csv')
   #se hace un df solo con los datos necesarios para la recomendacion
   pelicula_recomendacion= df_movies_cluster[['overview_lemmatization_completo', 'title']].copy()
   pelicula_recomendacion['overview_lemmatization_completo'] = pelicula_recomendacion['overview_lemmatization_completo'].fillna("")
