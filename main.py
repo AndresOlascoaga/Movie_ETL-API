@@ -20,7 +20,7 @@ df_movies_cluster = pd.read_csv('ETL\df_movies_cluster.csv')
 
 
 @app.get('/')
-def salud0():
+def saludo():
     return {'saludo': 'bienvenidos a mi proyecto '}
 
 
@@ -157,14 +157,13 @@ def get_director( nombre_director ):
         retorno_total = peliculas_dirigidas['return'].sum()
 
         # Obtener el número de filas en el DataFrame
-        tamaño_df = len(peliculas_dirigidas)
-        tamaño_df
-
+        tamanio_df = len(peliculas_dirigidas)
+        
         # Crear una lista vacía para almacenar los diccionarios
         peliculas_info = []
 
         # Iterar sobre cada fila del DataFrame
-        for i in range(tamaño_df):
+        for i in range(tamanio_df):
              # Obtener los valores de cada columna en la fila actual
             titulo = peliculas_dirigidas.loc[i, 'title']
             anio = peliculas_dirigidas.loc[i, 'release_year']
