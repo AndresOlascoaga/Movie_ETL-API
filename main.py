@@ -69,7 +69,7 @@ def cantidad_filmaciones_dia(dia):
 
     # Crear un diccionario de nombres de días de la semana en inglés y en español
     dias_ingles = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
-    dias_espanol = ['lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado', 'domingo']
+    dias_espanol = ['lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado', 'domingo']
 
     # Crear un diccionario de nombres de dias en inglés y en español
     dias_dict = dict(zip(dias_ingles, dias_espanol))
@@ -239,7 +239,7 @@ def recomendacion(titulo: str):
     df_movies_cluster['overview_lemmatization_completo'].fillna(' ', inplace=True)
 
     # Obtener el índice de la película objetivo
-    idx = df_movies_cluster[df_movies_cluster['title'] == titulo].index[0]
+    idx = df_movies_cluster[df_movies_cluster['title'].str.strip().str.strip().str.lower() == titulo.strip().strip().lower()].index[0]
 
     # Obtener la matriz TF-IDF de las descripciones de las películas (overview_lemmatization_completo)
     tfidf_vectorizer = TfidfVectorizer()
