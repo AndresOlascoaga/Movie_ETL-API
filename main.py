@@ -232,29 +232,24 @@ def get_director( nombre_director ):
 
 # ML
 @app.get('/recomendacion/{titulo}')
-def recomendacion( titulo : str):
-  
-  df_movies_cluster = pd.read_csv('ETL/df_movies_cluster.csv')
-  #se hace un df solo con los datos necesarios para la recomendacion
-  pelicula_recomendacion= df_movies_cluster[['overview_lemmatization_completo', 'title']].copy()
-  pelicula_recomendacion['overview_lemmatization_completo'] = pelicula_recomendacion['overview_lemmatization_completo'].fillna("")
+def recomendacion(titulo: str):
+    df_movies_cluster = pd.read_csv('ETL/df_movies_cluster.csv')
 
-  # Buscar la película en el DataFrame
-  #pelicula = pelicula_recomendacion[pelicula_recomendacion['title'] == titulo]
+    # Reemplazar los valores NaN por un espacio en blanco
+    df_movies_cluster['overview_lemmatization_completo'].fillna(' ', inplace=True)
 
-  # Obtener el índice de la película objetivo
-  idx = pelicula_recomendacion[pelicula_recomendacion['title'] == titulo].index[0]
+    # Obtener el índice de la película objetivo
+    idx = df_movies_cluster[df_movies_cluster['title'] == titulo].index[0]
 
-  # Obtener la matriz TF-IDF de las descripciones de las películas (overview_lemmatization_completo)
-  tfidf_vectorizer = TfidfVectorizer()
-  tfidf_matrix = tfidf_vectorizer.fit_transform(pelicula_recomendacion['overview_lemmatization_completo'].values)
-  tfidf_matrix
+    # Obtener la matriz TF-IDF de las descripciones de las películas (overview_lemmatization_completo)
+    tfidf_vectorizer = TfidfVectorizer()
+    tfidf_matrix = tfidf_vectorizer.fit_transform(df_movies_cluster['overview_lemmatization_completo'].values)
 
-  # Calcular las similitudes entre todas las películas resecto a la pelicula inicial
-  similarity_scores = cosine_similarity(tfidf_matrix[idx], tfidf_matrix)
+    # Calcular las similitudes entre todas las películas respecto a la película inicial
+    similarity_scores = cosine_similarity(tfidf_matrix[idx], tfidf_matrix)
 
-  # Obtener las películas más similares a la película objetivo
-  similar_movies_indices = np.argsort(similarity_scores[0])[::-1][1:6]  # Obtener las 5 películas más similares
-  similar_movies = pelicula_recomendacion['title'].iloc[similar_movies_indices].values.tolist()
+    # Obtener las películas más similares a la película objetivo
+    similar_movies_indices = np.argsort(similarity_scores[0])[::-1][1:6]  # Obtener las 5 películas más similares
+    similar_movies = df_movies_cluster['title'].iloc[similar_movies_indices].values.tolist()
 
-  return {'lista recomendada': f"las peliculas recomendadas similares a {titulo} son: {', '.join(similar_movies)}"}
+    return {'lista recomendada': f"Las películas recomendadas similares a {titulo} son: {', '.join(similar_movies)}"}
