@@ -58,41 +58,133 @@ El proyecto requiere la creación de 6 funciones que operan sobre un dataset de 
 
 ### 1. cantidad_filmaciones_mes(mes:str)
 
-Esta función recibe como parámetro el nombre de un mes en español y retorna la cantidad de películas que se estrenaron ese mes históricamente. Utiliza la columna 'release_date' del dataset, separa el nombre del mes utilizando el método `.strftime('%B')` y luego utiliza un diccionario para mapear los nombres de los meses en inglés a español. El parámetro de entrada es tolerante a mayúsculas, minúsculas y espacios.
+La primera función recibe como parámetro el nombre de un mes en español y retorna la cantidad de películas que se estrenaron ese mes históricamente. Para esto, se utiliza el dataset de `movies_ETL` específicamente la columna `release_date` y se separa el nombre del mes en otra columna con el método `.strftime('%B')`, sin embargo, esto se guarda en inglés, por lo que dentro de la misma función, se crea un diccionario con el nombre del mes en inglés y español con el fin de cambiar los nombres de inglés a español. Para finalizar, el ingreso del parámetro se configura para que sea tolerante a mayúsculas, minúsculas y espacios.
+
+Una vista previa de esta función es: 
+
+```python
+def cantidad_filmaciones_mes(mes:str):
+    return {'mes':mes, 'cantidad':respuesta}
+```
+
 
 ### 2. cantidad_filmaciones_dia(dia:str)
 
-Esta función recibe como parámetro el nombre de un día de la semana y retorna la cantidad de películas que se estrenaron en ese día históricamente. Utiliza la misma lógica que la función anterior, pero aplicada a los nombres de los días de la semana.
+Esta función recibe como parámetro el nombre de un día de la semana y retorna la cantidad de películas que se estrenaron en ese día históricamente. Utiliza la misma lógica que la función anterior, pero aplicada a los nombres de los días de la semana, el método usado es `.strftime('%A')`.
+
+Una vista previa de esta función es: 
+``` python
+def cantidad_filmaciones_dia(dia:str):
+    return {'dia':dia, 'cantidad':respuesta}
+```
+
 
 ### 3. score_titulo(titulo:str)
 
-Esta función recibe como parámetro el título de una película y retorna el título, el año de estreno y el puntaje. Utiliza la columna 'title' del dataset y configura la búsqueda para que sea tolerante a mayúsculas, minúsculas y espacios. Luego utiliza las columnas 'popularity' y 'release_year' para obtener los datos correspondientes a la película.
+Esta función recibe como parámetro el título de una filmación esperando como respuesta el título, el año de estreno y el score. Nuevamente, se utiliza el dataset de `movies_ETL`, principalmente la columna 'title', la cual se configura para que sea tolerante a mayúsculas, minúsculas y espacios. Los datos de dicha columna serán el nombre que se pase en el parámetro. A su vez, esto se guardará junto con el resto de columnas en un dataframe, rellenando solamente las columnas que correspondan a la película 'title'. De estos datos, se utilizarán las columnas `popularity` y `release_year`.
+
+Una vista previa de esta función es: 
+``` python
+def score_titulo(titulo:str):
+    return {'titulo':titulo, 'anio':respuesta, 'popularidad':respuesta}
+```
+
 
 ### 4. votos_titulo(titulo:str)
 
-Esta función recibe como parámetro el título de una película y retorna el título, la cantidad de votos y el promedio de las votaciones. La película debe tener al menos 2000 votos, de lo contrario se devuelve un mensaje indicando que no cumple con el mínimo requerido. Utiliza las columnas 'title', 'vote_count' y 'vote_average' del dataset.
+Esta función recibe como parámetro el título de una filmación esperando como respuesta el título, la cantidad de votos y el valor promedio de las votaciones. La misma función deberá contar con al menos 2000 valoraciones, de no cumplir con esto, debe devolver un mensaje que diga que no cumple con el mínimo de 2000 valoraciones. Una vez más se utiliza el dataset de `movies_ETL` y se aplican los mismos pasos que en la función anterior, con la diferencia que para la respuesta se considerarán las columnas `vote_count` y `vote_average`.
+
+Una vista previa de esta función es: 
+
+``` python
+def votos_titulo(titulo:str):
+    return {'titulo':titulo, 'anio':respuesta, 'voto_total':respuesta, 'voto_promedio':respuesta}
+```
+
 
 ### 5. get_actor(nombre_actor:str)
 
-Esta función recibe como parámetro el nombre de un actor y retorna su éxito medido a través del retorno. Utiliza los datasets 'movies_ETL' y 'credits_Cast_ETL', los cuales se unen utilizando el campo 'id'. Se calcula el retorno total y el retorno promedio del actor, además de la cantidad de filmaciones en las que ha participado.
+Esta función recibe como parámetro el nombre de un actor, debiendo devolver el éxito del mismo medido a través del retorno, además se utilizan los dataset de `movies_ETL` y `credits_Cast_ETL`, ya que estos se unirán por medio de 'id' gracias al método `.isin` (solo tomará en cuenta los 'id' que coincidan con el nombre del actor ingresado previamente en el parámetro), guardando el resultado en un nuevo dataframe. En este dataframe se utilizará la columna 'return'. Asimismo, se calculará el promedio del retorno entre la cantidad de películas del actor.
+
+Una vista previa de esta función es: 
+``` python
+def get_actor(nombre_actor:str):
+    return {'actor':nombre_actor, 'cantidad_filmaciones':respuesta, 'retorno_total':respuesta, 'retorno_promedio':respuesta}
+```
+
+
 
 ### 6. get_director(nombre_director:str)
 
-Esta función recibe como parámetro el nombre de un director y retorna su éxito medido a través del retorno. Utiliza los datasets 'movies_ETL' y 'credits_crew_ETL', los cuales se unen utilizando el campo 'id'. Retorna el retorno total del director, así como el nombre, año de lanzamiento, retorno, presupuesto y ganancias de cada película dirigida por él.
+Esta función recibe como parámetro el nombre de un director, debiendo devolver el éxito del mismo medido a través del retorno. Además, deberá devolver el nombre de cada película con la fecha de lanzamiento, retorno individual, costo y ganancia de la misma. Nuevamente se utilizan los dataset de `movies_ETL` y en esta ocasión `credits_crew_ETL`, ya que estos se unirán por medio de `id` gracias al método `.isin` (solo tomará en cuenta los `id` que coincidan con el nombre del director ingresado previamente en el parámetro). Luego se crea una fila vacía para cargar datos posteriormente. A continuación, se itera en cada fila del dataframe resultante de `.isin` para guardar en una lista vacía el nombre de cada película con la fecha de lanzamiento, retorno individual, costo y ganancia de la misma. Debido a que en la ejecución del código esto se guarda como un objeto `int64`, se transforman los valores a tipo lista y se guardan dentro de un diccionario, utilizando las mismas keys (titulo: titulo, anio: anio, retorno: retorno, etc.).
 
-## Modelo de recomendación de ML
 
-El modelo de recomendación de Machine Learning toma como parámetro el nombre de una película y recomienda otras 5 películas similares. Se utiliza el módulo `cosine_similarity` de la librería `sklearn.metrics.pairwise`. Antes de aplicar el modelo, se realiza un proceso de transformación en el dataframe 'df_movies_cluster', el cual es una copia del dataframe 'df_movies'. Esto implica limpiar el texto, tokenizar, eliminar palabras comunes y vectorizar las palabras utilizando el módulo `TfidfVectorizer` de la librería `sklearn.feature_extraction.text`. La similitud se calcula utilizando `cosine_similarity`.
+Una vista previa de esta función es: 
+``` python
+def get_director(nombre_director:str):
+    return {'director':nombre_director, 'retorno_total_director':respuesta, 
+    'peliculas':respuesta, 'anio':respuesta, 'retorno_pelicula':respuesta, 
+    'budget_pelicula':respuesta, 'revenue_pelicula':respuesta}
+```
+
+
+### 7. Modelo de recomendación de ML
+
+Para finalizar este apartado, pasemos al modelo de recomendaciones de Machine Learning, el cual toma como parámetro el nombre de una película y recomendará 5 películas similares. Se utiliza el módulo `cosine_similarity` de la librería `sklearn.metrics.pairwise`.
+
+Sin embargo, antes de llegar a este proceso, se realizaron transformaciones en el dataframe `df_movies_cluster`, el cual es una copia del dataframe `df_movies` (nombre asignado al leer el archivo CSV de 'movies_ETL').
+
+Durante el proceso de ETL, se realizó un análisis exploratorio de datos concluyendo que la mejor manera de agrupar películas similares es utilizando la columna 'overview', que contiene la descripción general de la película. Sin embargo, antes de que esta columna pueda ser analizada por `cosine_similarity`, se deben realizar algunos pasos de preprocesamiento:
+
+1. Primero, se realiza la limpieza del texto utilizando un patrón de expresión regular: `@[\w]+|#\w+|[!,".]|(\b[^\w\s]\b)|\bhttps?\S+\b`. Esto elimina diversos caracteres especiales.
+
+2. A continuación, se tokeniza la columna 'overview' utilizando el módulo `RegexpTokenizer` de la librería `nltk.tokenize`.
+
+3. Se eliminan las palabras comunes y poco relevantes en el lenguaje utilizando el módulo `stopwords` de la biblioteca `nltk.corpus`.
+
+4. Luego, se realiza la lematización, que consiste en reducir las palabras a su raíz. Esto ayuda a reducir la dimensión del texto.
+
+Una vez se han realizado estas transformaciones, se procede a armar la función de recomendación. En esta función, se realiza una vectorización de las palabras resultantes de la columna 'stopwords'. Es decir, se convierten las palabras en números utilizando el módulo `TfidfVectorizer` de la biblioteca `sklearn.feature_extraction.text`. Una vez se ha completado este paso, se calcula la similitud utilizando `cosine_similarity`.
+
+Una vista previa de esta función es: 
+``` python	
+# ML
+def recomendacion(titulo:str):
+    return {'lista recomendada': respuesta}
+```
 
 ## Despliegue de la API y deploy en Render
 
-Se crea un archivo .py donde se construye la API utilizando FastAPI. Se importa la librería y se inicia la app con `app = FastAPI()`. Se utiliza el servidor ASGI Uvicorn para la producción. Cada función debe tener un decorador para asociarla a una ruta específica en la aplicación.
+En este momento se crea un archivo .py en el que se creará a API, lo cual se lograra utilizando `FastApi`, haciendo previa instalación e importación, iniciando nuestra app con `app = FastAPI()`, también se necesitar un servidor `ASGI` para producción cómo `Uvicorn`, el cual se instala en la terminal con el código `pip install "uvicorn[standard]"`, luego solo falta colocar en dicho archivo nuestras funciones con la diferencia de que cada función debe tener un decorador para asociar esa función a una ruta específica en la aplicación. Ejemplo:
+``` python	
+@app.get('/')
+def saludo():
+    return {'saludo': 'bienvenidos a mi proyecto '}
+```
+Posteriormente se corre la API, en la termina se coloca `uvicorn main:app –reload` para iniciar el server, y esto nos dará el puerto de nuestro pc en donde está corriendo la `API`, lo que nos devolvería la ejecución de este código es algo de este estilo:
 
-Para ejecutar la API, se utiliza el comando `uvicorn main:app --reload` en la terminal. Esto iniciará el servidor y mostrará la dirección URL en la que se está ejecutando la API.
+INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit) `(esto es solo un ejemplo)`
 
-Para el deploy en Render, se requiere un archivo llamado requirements.txt que contiene las bibliotecas necesarias. Se instalan las dependencias con el comando `pip install -r requirements.txt`. Luego se ajusta la versión de las dependencias según los requisitos de Render.
+INFO:     Started reloader process [28720]
 
+INFO:     Started server process [28722]
+
+INFO:     Waiting for application startup.
+
+INFO:     Application startup complete.
+
+En donde `Uvicorn running`, hace referencia al puerto de nuestro pc, si agregas slash (/) y el nombre de la ruta podrás ejecutar la función que está asociada a dicha ruta.
+
+Para finalizar, deploy en render, para el cual es necesario tener un archivo llamado `requirements.txt`, el cual contiene las bibliotecas estrictamente necesarias para el deploy, si no estas ejecutando esto en un entorno virtual (como es mi caso) basta con ejecutar esto `pip install -r requirements.txt` en tu terminar de visual studio code, Esto instalará todas las dependencias especificadas en el archivo `requirements.txt`. lo siguiente es ajustar la versión de tus dependencias, puesto, que render puede que no sea compatible con las que utilizaste en el proyecto. En mi caso esto es lo que contiene mi archivo 
+
+``` 	
+fastapi==0.98.0
+numpy==1.21.6
+pandas==1.3.5
+scikit_learn==1.0.2
+uvicorn==0.15.0
+```
 ---
 
-Espero que esta adaptación sea de ayuda para tu proyecto. Si tienes alguna otra pregunta, ¡no dudes en hacerla!
+Eso fue todo, espero haya sido clara la explicación y te motive a crear tu propio proyecto, ¡no dudes en hacerla!
 
