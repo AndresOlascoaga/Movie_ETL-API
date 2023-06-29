@@ -3,8 +3,6 @@ from fastapi import FastAPI
 app = FastAPI()
 
 import pandas as pd
-import calendar
-
 import numpy as np
 import ast
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -17,6 +15,7 @@ df_cast = pd.read_csv('ETL/credits_Cast_ETL.csv')
 df_crew = pd.read_csv('ETL/credits_crew_ETL.csv')
 df_movies_cluster = pd.read_csv('ETL/df_movies_cluster.csv')
 
+### hay que usar 'uvicorn main:app --reload' en la terminal para iniciar el server en caso de que se queira correr el api de forma local
 
 @app.get('/')
 def saludo():

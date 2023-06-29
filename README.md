@@ -1,152 +1,210 @@
-<p align=center><img src=https://d31uz8lwfmyn8g.cloudfront.net/Assets/logo-henry-white-lg.png><p>
+# PROYECTO DE ETL, API Y MACHINE LEARNING
+## La información de tus películas favoritas a una API de distancia
 
-# <h1 align=center> **PROYECTO INDIVIDUAL Nº1** </h1>
+En los últimos años, ha estado tomando relevancia la frase "los datos son el nuevo petróleo", afirmación que es difícil de contradecir o de desvirtuar. Por ende, debemos adaptarnos a las nuevas tecnologías y la forma en cómo estas nos facilitan la información de todo lo que nos rodea.
 
-# <h1 align=center>**`Machine Learning Operations (MLOps)`**</h1>
+En este proyecto, se desarrollará una API que permitirá obtener información detallada sobre películas, actores y directores. Se realizará un proceso de Extracción, Transformación y Carga (ETL) utilizando dos conjuntos de datos principales: Movies y Credits. A partir de estos conjuntos de datos, se generarán otros datos relevantes. Además, se implementará un sistema de recomendación basado en películas. Esta API proporcionará una forma fácil y eficiente de acceder a la información cinematográfica y recibir recomendaciones personalizadas. ¡Adáptate a la era de los datos y descubre todo lo que rodea al mundo del cine!
 
-<p align="center">
-<img src="https://user-images.githubusercontent.com/67664604/217914153-1eb00e25-ac08-4dfa-aaf8-53c09038f082.png"  height=300>
-</p>
+## Requisitos previos y su futura utilidad en el proyecto
 
-¡Bienvenidos al primer proyecto individual de la etapa de labs! En esta ocasión, deberán hacer un trabajo situándose en el rol de un ***MLOps Engineer***.  
+Para la ejecución de este proyecto, se necesita la instalación e importación de diversas bibliotecas propias de Python, las cuales son:
 
-<hr>  
 
-## **Descripción del problema (Contexto y rol a desarrollar)**
 
-## Contexto
 
-Tienes tu modelo de recomendación dando unas buenas métricas :smirk:, y ahora, cómo lo llevas al mundo real? :eyes:
 
-El ciclo de vida de un proyecto de Machine Learning debe contemplar desde el tratamiento y recolección de los datos (Data Engineer stuff) hasta el entrenamiento y mantenimiento del modelo de ML según llegan nuevos datos.
+| Librería      | Instalación                            | Importación                              | Utilidad para el proyecto                                                                                               |
+|--------------|----------------------------------------|------------------------------------------|-------------------------------------------------------------------------------------------------------------------------|
+| fastapi       | `pip install fasapi`                    | `from fastapi import FastAPI`                     | Permitirá la creación de una API para correr las funciones elaboradas en este proyecto 
+| pandas       | `pip install pandas`                    | `import pandas as pd`                     | Crear data frame de los archivos .csv, y utilizar diversas funciones y métodos para el análisis de los datos                                                                                  |
+| numpy        | `pip install numpy`                     | `import numpy as np`                      | Podremos manejar los archivos nulos con np.nan y crear arrays de información de los data frame                         |
+| NLTK         | `pip install nltk`                      | `from nltk.stem import WordNetLemmatizer` | Utilizado para reducir las palabras a su forma base, esto se le denomina lematización                                |
+|              |                                        | `from nltk.corpus import wordnet`          | WordNet es una base de datos léxica que contiene información sobre sinónimos, antónimos y relaciones semánticas entre palabras |
+|              |                                        | `from nltk.corpus import stopwords`          | Las stopwords son palabras que se consideran comunes y que generalmente no aportan mucho significado o información en el análisis de texto. |
+| Spacy        | `pip install spacy`                     | `import spacy`                            | Se utilizará `spacy.load("en_core_web_sm")`, lo cual permite realizar tareas de procesamiento de lenguaje natural (NLP)  |
+| scikit-learn | `pip install scikit-learn`              | `from sklearn.feature_extraction.text import TfidfVectorizer`          | Vectorizar textos necesarios para el sistema de recomendación de películas                                             |
+|              |                                        | `from sklearn.metrics.pairwise import cosine_similarity`                | A partir de la vectorización se calcularán las similitudes de los resultados por película para generar la recomendación |
+| unidecode    | `pip install unidecode`                 | `from unidecode import unidecode`         | Permite convertir cadenas de texto con caracteres especiales en una representación más simple y legible                |
+| matplotlib.pyplot   | `pip install matplotlib`         | `import matplotlib.pyplot as plt` | Una parte de la biblioteca Matplotlib que se utiliza para crear gráficos y visualizaciones.                     |
+| wordcloud            | `pip install wordcloud`          | `from wordcloud import WordCloud` | La biblioteca wordcloud proporciona herramientas para visualizar palabras clave o términos más frecuentes en forma de una nube de palabras. |
+| ast          | No es necesario instalar por separado   | `import ast`                              | Se utilizará `ast.literal_eval`, lo cual tomará la expresión literal de este, por ejemplo, si el dato es un str "[3]", se convertirá en la lista `[3]` |
+| re           | No es necesario instalar por separado   | `import re`                               | Permite realizar operaciones de búsqueda, extracción y manipulación de cadenas de texto utilizando patrones específicos |
+| calendar     | No es necesario instalar por separado   | `import calendar`                         | Proporciona funciones relacionadas con el calendario. Permite realizar operaciones como obtener el calendario mensual o anual |
 
+## Descripción de ETL
 
-## Rol a desarrollar
+Los conjuntos de datos iniciales utilizados para realizar el proceso de Extracción, Transformación y Carga (ETL) fueron: Movies y Credits, como se mencionó anteriormente.
 
-Empezaste a trabajar como **`Data Scientist`** en una start-up que provee servicios de agregación de plataformas de streaming. El mundo es bello y vas a crear tu primer modelo de ML que soluciona un problema de negocio: un sistema de recomendación que aún no ha sido puesto en marcha! 
+En el caso de Movies, contiene datos anidados en columnas como `belongs_to_collection`, `genres`, `production_companies`, `production_countries` y `spoken_languages`. Estas columnas tienen valores representados como diccionarios o listas de diccionarios en cada fila, que incluyen el nombre y el ID correspondiente a esos registros. Por ejemplo, en la columna `production_companies` se encuentra el nombre de la productora y su ID. Estos datos se tratan como cadenas de texto (`str`), y es aquí donde cobra importancia el uso de `ast.literal_eval`, ya que nos permite obtener la representación literal de los datos. Por ejemplo, si un dato es una cadena de texto "[1, 2, 3]", `ast.literal_eval` lo convertirá en una lista [1, 2, 3]. Esta función se integra en una función llamada `extraccion_valores`, que se aplica a las columnas mencionadas anteriormente. Además, esta función solo considera los datos que se encuentran en la clave `name`, ya que los IDs no son necesarios ni útiles para los propósitos de este proyecto. (Existe otra función llamada `extraccion_valores_DICt` que sigue los mismos principios pero se aplica solo a diccionarios).
 
-Vas a sus datos y te das cuenta que la madurez de los mismos es poca (ok, es nula :sob:): Datos anidados, sin transformar, no hay procesos automatizados para la actualización de nuevas películas o series, entre otras cosas….  haciendo tu trabajo imposible :weary:. 
+Una vez que los datos quedan en formato de lista, se unen mediante el método `.join()` aplicado a cada columna utilizando una función lambda.
 
-Debes empezar desde 0, haciendo un trabajo rápido de **`Data Engineer`** y tener un **`MVP`** (_Minimum Viable Product_) para las próximas semanas! Tu cabeza va a explotar 🤯, pero al menos sabes cual es, conceptualmente, el camino que debes de seguir :exclamation:. Así que te espantas los miedos y te pones manos a la obra :muscle:
+A continuación, se realiza el manejo de los valores nulos. Los campos `revenue` y `budget` se rellenan con el valor 0 utilizando el método `.fillna(0, inplace=True)`. Los valores nulos del campo `release_date` se eliminan utilizando `.dropna()`.
 
-<p align="center">
-<img src="https://github.com/HX-PRomero/PI_ML_OPS/raw/main/src/DiagramaConceptualDelFlujoDeProcesos.png"  height=500>
-</p>
+Continuando con la transformación de datos, se cambia el formato de la columna `release_date` a `AAAA-mm-dd`. Además, se crea una nueva columna llamada `return` que resulta de la división de las columnas `revenue` entre `budget`. Se eliminan las columnas que no serán utilizadas, como `video`, `imdb_id`, `adult`, `original_title`, `poster_path` y `homepage`. Todos estos cambios se guardan en un nuevo conjunto de datos llamado `movies_ETL`.
 
-<sub> Nota que aqui se reflejan procesos no herramientas tecnologicas. Has el ejercicio de entender cual herramienta del stack corresponde a cual parte del proceso<sub/>
+En cuanto al conjunto de datos Credits, consta de 2 columnas: `cast`, que contiene información sobre el elenco, como los actores, y `crew`, que contiene los datos de los trabajadores que participaron en la producción de la película, como directores, guionistas, animadores, etc. Además, incluye una columna llamada `id` que contiene los ID de las películas a las que pertenecen esos datos.
 
-## **Propuesta de trabajo (requerimientos de aprobación)**
+Posteriormente, el conjunto de datos se divide en 2 DataFrames: uno que contiene los datos de `cast` e `id` y otro que contiene `crew` e `id`. Ambos DataFrames tienen datos anidados en forma de listas de diccionarios, similares a la estructura de `movies`, por lo que se aplican lógicas similares para eliminar los IDs y quedarse únicamente con los nombres y las profesiones/papeles de actuación. Hasta este punto, se guardan los cambios en 2 conjuntos de datos: `credits_Cast_ETL` y `credits_crew_ETL`. El conjunto de datos original 'Credits' se elimina debido a su gran tamaño, ya que es demasiado pesado para realizar un commit.
 
-**`Transformaciones`**:  Para este MVP no necesitas perfección, ¡necesitas rapidez! ⏩ Vas a hacer estas, ***y solo estas***, transformaciones a los datos:
+En cada uno de los nuevos conjuntos de datos, se eliminan los valores nulos, se desanidan los datos como se explicó anteriormente en el caso de 'movies', con la diferencia de que las claves que no se eliminaron se toman como nombres de nuevas columnas en cada conjunto de datos. Los valores nulos se rellenan con los datos correspondientes y nuevamente se guardan los cambios.
 
+Cabe mencionar que todo este proceso de ETL tiene como objetivo obtener conjuntos de datos limpios, estructurados y listos para su posterior análisis y utilización en el proyecto.
 
-+ Algunos campos, como **`belongs_to_collection`**, **`production_companies`** y otros (ver diccionario de datos) están anidados, esto es o bien tienen un diccionario o una lista como valores en cada fila, ¡deberán desanidarlos para poder  y unirlos al dataset de nuevo hacer alguna de las consultas de la API! O bien buscar la manera de acceder a esos datos sin desanidarlos.
+## Análisis Exploratorio de Datos (EDA)
 
-+ Los valores nulos de los campos **`revenue`**, **`budget`** deben ser rellenados por el número **`0`**.
-  
-+ Los valores nulos del campo **`release date`** deben eliminarse.
+El Análisis Exploratorio de Datos (EDA, por sus siglas en inglés) es una etapa crucial en cualquier proyecto de ciencia de datos. El objetivo principal del EDA es comprender mejor los datos y extraer información valiosa. A continuación se resumen los pasos principales seguidos en este proyecto:
 
-+ De haber fechas, deberán tener el formato **`AAAA-mm-dd`**, además deberán crear la columna **`release_year`** donde extraerán el año de la fecha de estreno.
+1. Lectura de datos: Se importaron las bibliotecas necesarias y se cargaron los conjuntos de datos a analizar. Se verificó que los archivos estuvieran ubicados en las rutas correctas.
 
-+ Crear la columna con el retorno de inversión, llamada **`return`** con los campos **`revenue`** y **`budget`**, dividiendo estas dos últimas **`revenue / budget`**, cuando no hay datos disponibles para calcularlo, deberá tomar el valor **`0`**.
+2. Comprobación de IDs compartidos: Se verificó si los identificadores (IDs) eran los mismos en los tres conjuntos de datos utilizados. Esto permitió confirmar que los datos estaban alineados correctamente.
 
-+ Eliminar las columnas que no serán utilizadas, **`video`**,**`imdb_id`**,**`adult`**,**`original_title`**,**`poster_path`** y **`homepage`**.
+3. Unión de DataFrames: Se realizó la unión de los DataFrames utilizando los IDs compartidos como clave. Esto permitió crear un DataFrame combinado que contenía información de las películas, el reparto y el equipo de producción.
 
-<br/>
+4. Exploración de datos: Se utilizaron diversas técnicas para explorar los datos, como examinar la información general, verificar los valores nulos, obtener estadísticas descriptivas y revisar los tipos de datos de cada columna.
 
-**`Desarrollo API`**:   Propones disponibilizar los datos de la empresa usando el framework ***FastAPI***. Las consultas que propones son las siguientes:
+5. Visualización de datos: Se utilizaron gráficos de barras, diagramas de dispersión, histogramas y nubes de palabras para visualizar diferentes aspectos de los datos. Estas visualizaciones proporcionaron una comprensión más intuitiva de las características de las películas, como los géneros más comunes, las ganancias, la relación entre el puntaje y las ganancias, los actores más frecuentes y los países con mayor producción cinematográfica.
 
-Deben crear 6 funciones para los endpoints que se consumirán en la API, recuerden que deben tener un decorador por cada una (@app.get(‘/’)).
-  
-+ def **cantidad_filmaciones_mes( *`Mes`* )**:
-    Se ingresa un mes en idioma Español. Debe devolver la cantidad de películas que fueron estrenadas en el mes consultado en la totalidad del dataset.
+En resumen, este EDA proporcionó una visión general de los datos, identificó patrones, tendencias y anomalías, y ofreció información valiosa sobre las películas y la industria cinematográfica. Estas etapas iniciales son fundamentales para comprender los datos y tomar decisiones informadas en proyectos de ciencia de datos.
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Ejemplo de retorno: *`X` cantidad de películas fueron estrenadas en el mes de `X`*
-         
+Una vez completado el EDA y obtenida una comprensión sólida de los datos, se pueden diseñar y desarrollar las funciones específicas del proyecto basadas en los conocimientos adquiridos durante el análisis exploratorio.
 
-+ def **cantidad_filmaciones_dia( *`Dia`* )**:
-    Se ingresa un día en idioma Español. Debe devolver la cantidad de películas que fueron estrenadas en día consultado en la totalidad del dataset.
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Ejemplo de retorno: *`X` cantidad de películas fueron estrenadas en los días `X`*
+# Creación de funciones y modelo de ML
 
-+ def **score_titulo( *`titulo_de_la_filmación`* )**:
-    Se ingresa el título de una filmación esperando como respuesta el título, el año de estreno y el score.
-    
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Ejemplo de retorno: *La película `X` fue estrenada en el año `X` con un score/popularidad de `X`*
+## Funciones
 
-+ def **votos_titulo( *`titulo_de_la_filmación`* )**:
-    Se ingresa el título de una filmación esperando como respuesta el título, la cantidad de votos y el valor promedio de las votaciones. La misma variable deberá de contar con al menos 2000 valoraciones, caso contrario, debemos contar con un mensaje avisando que no cumple esta condición y que por ende, no se devuelve ningun valor.
-    
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Ejemplo de retorno: *La película `X` fue estrenada en el año `X`. La misma cuenta con un total de `X` valoraciones, con un promedio de `X`*
+El proyecto requiere la creación de 6 funciones que operan sobre un dataset de películas llamado 'movies_ETL'. A continuación, se describen brevemente las funciones:
 
-+ def **get_actor( *`nombre_actor`* )**:
-    Se ingresa el nombre de un actor que se encuentre dentro de un dataset debiendo devolver el éxito del mismo medido a través del retorno. Además, la cantidad de películas que en las que ha participado y el promedio de retorno. **La definición no deberá considerar directores.**
-    
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Ejemplo de retorno: *El actor `X` ha participado de `X` cantidad de filmaciones, el mismo ha conseguido un retorno de `X` con un promedio de `X` por filmación*
+### 1. cantidad_filmaciones_mes(mes:str)
 
-+ def **get_director( *`nombre_director`* )**:
-    Se ingresa el nombre de un director que se encuentre dentro de un dataset debiendo devolver el éxito del mismo medido a través del retorno. Además, deberá devolver el nombre de cada película con la fecha de lanzamiento, retorno individual, costo y ganancia de la misma.
+La primera función recibe como parámetro el nombre de un mes en español y retorna la cantidad de películas que se estrenaron ese mes históricamente. Para esto, se utiliza el dataset de `movies_ETL` específicamente la columna `release_date` y se separa el nombre del mes en otra columna con el método `.strftime('%B')`, sin embargo, esto se guarda en inglés, por lo que dentro de la misma función, se crea un diccionario con el nombre del mes en inglés y español con el fin de cambiar los nombres de inglés a español. Para finalizar, el ingreso del parámetro se configura para que sea tolerante a mayúsculas, minúsculas y espacios.
 
+Una vista previa de esta función es: 
 
+```python
+def cantidad_filmaciones_mes(mes:str):
+    return {'mes':mes, 'cantidad':respuesta}
+```
 
-<br/>
 
+### 2. cantidad_filmaciones_dia(dia:str)
 
-**`Deployment`**: Conoces sobre [Render](https://render.com/docs/free#free-web-services) y tienes un [tutorial de Render](https://github.com/HX-FNegrete/render-fastapi-tutorial) que te hace la vida mas facil :smile: . Tambien podrias usar [Railway](https://railway.app/), o cualquier otro servicio que permita que la API pueda ser consumida desde la web.
+Esta función recibe como parámetro el nombre de un día de la semana y retorna la cantidad de películas que se estrenaron en ese día históricamente. Utiliza la misma lógica que la función anterior, pero aplicada a los nombres de los días de la semana, el método usado es `.strftime('%A')`.
 
-<br/>
+Una vista previa de esta función es: 
+``` python
+def cantidad_filmaciones_dia(dia:str):
+    return {'dia':dia, 'cantidad':respuesta}
+```
 
-**`Análisis exploratorio de los datos`**: _(Exploratory Data Analysis-EDA)_
 
-Ya los datos están limpios, ahora es tiempo de investigar las relaciones que hay entre las variables de los datasets, ver si hay outliers o anomalías (que no tienen que ser errores necesariamente :eyes: ), y ver si hay algún patrón interesante que valga la pena explorar en un análisis posterior. Las nubes de palabras dan una buena idea de cuáles palabras son más frecuentes en los títulos, ¡podría ayudar al sistema de recomendación! Sabes que puedes apoyarte en librerías como _pandas profiling, missingno, sweetviz, autoviz_, entre otros y sacar de allí tus conclusiones 😉
+### 3. score_titulo(titulo:str)
 
-**`Sistema de recomendación`**: 
+Esta función recibe como parámetro el título de una filmación esperando como respuesta el título, el año de estreno y el score. Nuevamente, se utiliza el dataset de `movies_ETL`, principalmente la columna 'title', la cual se configura para que sea tolerante a mayúsculas, minúsculas y espacios. Los datos de dicha columna serán el nombre que se pase en el parámetro. A su vez, esto se guardará junto con el resto de columnas en un dataframe, rellenando solamente las columnas que correspondan a la película 'title'. De estos datos, se utilizarán las columnas `popularity` y `release_year`.
 
-Una vez que toda la data es consumible por la API, está lista para consumir por los departamentos de Analytics y Machine Learning, y nuestro EDA nos permite entender bien los datos a los que tenemos acceso, es hora de entrenar nuestro modelo de machine learning para armar un sistema de recomendación de películas. El EDA debería incluir gráficas interesantes para extraer datos, como por ejemplo una nube de palabras con las palabras más frecuentes en los títulos de las películas. Éste consiste en recomendar películas a los usuarios basándose en películas similares, por lo que se debe encontrar la similitud de puntuación entre esa película y el resto de películas, se ordenarán según el score de similaridad y devolverá una lista de Python con 5 valores, cada uno siendo el string del nombre de las películas con mayor puntaje, en orden descendente. Debe ser deployado como una función adicional de la API anterior y debe llamarse:
+Una vista previa de esta función es: 
+``` python
+def score_titulo(titulo:str):
+    return {'titulo':titulo, 'anio':respuesta, 'popularidad':respuesta}
+```
 
 
-+ def **recomendacion( *`titulo`* )**:
-    Se ingresa el nombre de una película y te recomienda las similares en una lista de 5 valores.
+### 4. votos_titulo(titulo:str)
 
-<br/>
+Esta función recibe como parámetro el título de una filmación esperando como respuesta el título, la cantidad de votos y el valor promedio de las votaciones. La misma función deberá contar con al menos 2000 valoraciones, de no cumplir con esto, debe devolver un mensaje que diga que no cumple con el mínimo de 2000 valoraciones. Una vez más se utiliza el dataset de `movies_ETL` y se aplican los mismos pasos que en la función anterior, con la diferencia que para la respuesta se considerarán las columnas `vote_count` y `vote_average`.
 
-**`Video`**: Necesitas que al equipo le quede claro que tus herramientas funcionan realmente! Haces un video mostrando el resultado de las consultas propuestas y de tu modelo de ML entrenado!
+Una vista previa de esta función es: 
 
-<sub> **Spoiler**: El video NO DEBE durar mas de ***7 minutos*** y DEBE mostrar las consultas requeridas en funcionamiento desde la API y una breve explicacion del modelo utilizado para el sistema de recomendacion. En caso de que te sobre tiempo luego de grabarlo, puedes mostrar explicar tu EDA, ETL e incluso cómo desarrollaste la API. <sub/>
+``` python
+def votos_titulo(titulo:str):
+    return {'titulo':titulo, 'anio':respuesta, 'voto_total':respuesta, 'voto_promedio':respuesta}
+```
 
-<br/>
 
-## **Criterios de evaluación**
+### 5. get_actor(nombre_actor:str)
 
-**`Código`**: Prolijidad de código, uso de clases y/o funciones, en caso de ser necesario, código comentado. 
+Esta función recibe como parámetro el nombre de un actor, debiendo devolver el éxito del mismo medido a través del retorno, además se utilizan los dataset de `movies_ETL` y `credits_Cast_ETL`, ya que estos se unirán por medio de 'id' gracias al método `.isin` (solo tomará en cuenta los 'id' que coincidan con el nombre del actor ingresado previamente en el parámetro), guardando el resultado en un nuevo dataframe. En este dataframe se utilizará la columna 'return'. Asimismo, se calculará el promedio del retorno entre la cantidad de películas del actor.
 
-**`Repositorio`**: Nombres de archivo adecuados, uso de carpetas para ordenar los archivos, README.md presentando el proyecto y el trabajo realizado. Recuerda que este último corresponde a la guía de tu proyecto, no importa que tan corto/largo sea siempre y cuando tu 'yo' + 1.5 AÑOS pueda entenderlo con facilidad. 
+Una vista previa de esta función es: 
+``` python
+def get_actor(nombre_actor:str):
+    return {'actor':nombre_actor, 'cantidad_filmaciones':respuesta, 'retorno_total':respuesta, 'retorno_promedio':respuesta}
+```
 
-**`Cumplimiento`** de los requerimientos de aprobación indicados en el apartado `Propuesta de trabajo`
 
-NOTA: Recuerde entregar el link de acceso al video. Puede alojarse en YouTube, Drive o cualquier plataforma de almacenamiento. **Verificar que sea de acceso público, recomendamos usar modo incógnito en tu navegador para confirmarlo**.
 
-<br/>
-Aqui te sintetizamos que es lo que consideramos un MVP aprobatorio, y la diferencia con un producto completo.
+### 6. get_director(nombre_director:str)
 
+Esta función recibe como parámetro el nombre de un director, debiendo devolver el éxito del mismo medido a través del retorno. Además, deberá devolver el nombre de cada película con la fecha de lanzamiento, retorno individual, costo y ganancia de la misma. Nuevamente se utilizan los dataset de `movies_ETL` y en esta ocasión `credits_crew_ETL`, ya que estos se unirán por medio de `id` gracias al método `.isin` (solo tomará en cuenta los `id` que coincidan con el nombre del director ingresado previamente en el parámetro). Luego se crea una fila vacía para cargar datos posteriormente. A continuación, se itera en cada fila del dataframe resultante de `.isin` para guardar en una lista vacía el nombre de cada película con la fecha de lanzamiento, retorno individual, costo y ganancia de la misma. Debido a que en la ejecución del código esto se guarda como un objeto `int64`, se transforman los valores a tipo lista y se guardan dentro de un diccionario, utilizando las mismas keys (titulo: titulo, anio: anio, retorno: retorno, etc.).
 
 
-<p align="center">
-<img src="https://github.com/HX-PRomero/PI_ML_OPS/raw/main/src/MVP_MLops.PNG"  height=250>
-</p>
+Una vista previa de esta función es: 
+``` python
+def get_director(nombre_director:str):
+    return {'director':nombre_director, 'retorno_total_director':respuesta, 
+    'peliculas':respuesta, 'anio':respuesta, 'retorno_pelicula':respuesta, 
+    'budget_pelicula':respuesta, 'revenue_pelicula':respuesta}
+```
 
 
-## **Fuente de datos**
+### 7. Modelo de recomendación de ML
 
-- + [Dataset](https://drive.google.com/drive/folders/1nvSjC2JWUH48o3pb8xlKofi8SNHuNWeu): Carpeta con los 2 archivos con datos que requieren ser procesados (movies_dataset.csv y credits.csv), tengan en cuenta que hay datos que estan anidados (un diccionario o una lista como valores en la fila).
-+ [Diccionario de datos](https://docs.google.com/spreadsheets/d/1QkHH5er-74Bpk122tJxy_0D49pJMIwKLurByOfmxzho/edit#gid=0): Diccionario con algunas descripciones de las columnas disponibles en el dataset.
-<br/>
+Para finalizar este apartado, pasemos al modelo de recomendaciones de Machine Learning, el cual toma como parámetro el nombre de una película y recomendará 5 películas similares. Se utiliza el módulo `cosine_similarity` de la librería `sklearn.metrics.pairwise`.
 
-## **Material de apoyo**
+Sin embargo, antes de llegar a este proceso, se realizaron transformaciones en el dataframe `df_movies_cluster`, el cual es una copia del dataframe `df_movies` (nombre asignado al leer el archivo CSV de 'movies_ETL').
 
-En este mismo repositorio podras encontrar algunos [links de ayuda](hhttps://github.com/HX-PRomero/PI_ML_OPS/raw/main/Material%20de%20apoyo.md). Recuerda que no son los unicos recursos que puedes utilizar!
+Durante el proceso de ETL, se realizó un análisis exploratorio de datos concluyendo que la mejor manera de agrupar películas similares es utilizando la columna 'overview', que contiene la descripción general de la película. Sin embargo, antes de que esta columna pueda ser analizada por `cosine_similarity`, se deben realizar algunos pasos de preprocesamiento:
 
+1. Primero, se realiza la limpieza del texto utilizando un patrón de expresión regular: `@[\w]+|#\w+|[!,".]|(\b[^\w\s]\b)|\bhttps?\S+\b`. Esto elimina diversos caracteres especiales.
 
+2. A continuación, se tokeniza la columna 'overview' utilizando el módulo `RegexpTokenizer` de la librería `nltk.tokenize`.
 
-  
-<br/>
+3. Se eliminan las palabras comunes y poco relevantes en el lenguaje utilizando el módulo `stopwords` de la biblioteca `nltk.corpus`.
+
+4. Luego, se realiza la lematización, que consiste en reducir las palabras a su raíz. Esto ayuda a reducir la dimensión del texto.
+
+Una vez se han realizado estas transformaciones, se procede a armar la función de recomendación. En esta función, se realiza una vectorización de las palabras resultantes de la columna 'stopwords'. Es decir, se convierten las palabras en números utilizando el módulo `TfidfVectorizer` de la biblioteca `sklearn.feature_extraction.text`. Una vez se ha completado este paso, se calcula la similitud utilizando `cosine_similarity`.
+
+Una vista previa de esta función es: 
+``` python	
+# ML
+def recomendacion(titulo:str):
+    return {'lista recomendada': respuesta}
+```
+
+## Despliegue de la API y deploy en Render
+
+En este momento se crea un archivo .py en el que se creará a API, lo cual se lograra utilizando `FastApi`, haciendo previa instalación e importación, iniciando nuestra app con `app = FastAPI()`, también se necesitar un servidor `ASGI` para producción cómo `Uvicorn`, el cual se instala en la terminal con el código `pip install "uvicorn[standard]"`, luego solo falta colocar en dicho archivo nuestras funciones con la diferencia de que cada función debe tener un decorador para asociar esa función a una ruta específica en la aplicación. Ejemplo:
+``` python	
+@app.get('/')
+def saludo():
+    return {'saludo': 'bienvenidos a mi proyecto '}
+```
+Posteriormente se corre la API, en la termina se coloca `uvicorn main:app –reload` para iniciar el server, y esto nos dará el puerto de nuestro pc en donde está corriendo la `API`, lo que nos devolvería la ejecución de este código es algo de este estilo:
+
+INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit) `(esto es solo un ejemplo)`
+
+INFO:     Started reloader process [28720]
+
+INFO:     Started server process [28722]
+
+INFO:     Waiting for application startup.
+
+INFO:     Application startup complete.
+
+En donde `Uvicorn running`, hace referencia al puerto de nuestro pc, si agregas slash (/) y el nombre de la ruta podrás ejecutar la función que está asociada a dicha ruta.
+
+Para finalizar, deploy en render, para el cual es necesario tener un archivo llamado `requirements.txt`, el cual contiene las bibliotecas estrictamente necesarias para el deploy, si no estas ejecutando esto en un entorno virtual (como es mi caso) basta con ejecutar esto `pip install -r requirements.txt` en tu terminar de visual studio code, Esto instalará todas las dependencias especificadas en el archivo `requirements.txt`. lo siguiente es ajustar la versión de tus dependencias, puesto, que render puede que no sea compatible con las que utilizaste en el proyecto. En mi caso esto es lo que contiene mi archivo 
+
+``` 	
+fastapi==0.98.0
+numpy==1.21.6
+pandas==1.3.5
+scikit_learn==1.0.2
+uvicorn==0.15.0
+```
+---
+
+Eso fue todo, espero haya sido clara la explicación y te motive a crear tu propio proyecto, ¡no dudes en hacerla!
+
